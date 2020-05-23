@@ -1,10 +1,11 @@
-<div>
-    <p>Hey! <%= accountVerificationToken.user.username  %></p>
+<div style="background-color: #004D40;color: white;text-align: center;padding: 2rem ;">
+    <h2>Hey! <%= accountVerificationToken.user.username  %></h2>
     <br>
+
+    <p style="font-size: 1.2rem;"> Click the below link to activate your account. </p>
     <br>
-    <p> Click the below link to activate your account. </p>
-    <br>
-    <a href="http://localhost:<%= process.env.PORT %>/accountVerification/<%= accountVerificationToken.token %>">
+    <a style="color:white;font-size: 1rem;"
+        href="http://localhost:<%= process.env.PORT %>/accountVerification/<%= accountVerificationToken.token %>">
         Activate
         account </a>
 </div>

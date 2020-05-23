@@ -3,6 +3,8 @@ const validator = require("validator");
 const AccountVerificationToken = require("../models/accountVerificationToken");
 const crypto = require("crypto");
 const authMailer = require("../mailers/auth_mailer");
+const authEmailWorker = require("../workers/activation_email_worker");
+const queue = require("../config/kue");
 
 module.exports.signUp = function (req, res, next) {
     if (req.isAuthenticated()) {
@@ -73,7 +75,16 @@ module.exports.createUser = async function (req, res, next) {
             }).execPopulate();
 
             // if user is created successfully send mail to the user
-            authMailer.accountVerificationMail(accountVerificationToken);
+            // authMailer.accountVerificationMail(accountVerificationToken);
+            let job = queue.create("email", accountVerificationToken).save(function (err) {
+
+                if (err) {
+                    console.log("Error in creatin the queue");
+                    return;
+                }
+
+                console.log("Job created", job.id);
+            })
             console.log("mail sent");
             return res.redirect("/");
         }
@@ -159,4 +170,14 @@ module.exports.activateAccount = async function (req, res) {
         req.flash("error", "Error in activating account");
         res.redirect("/");
     }
+}
+
+
+// forgot password page render
+module.exports.forgotPassword = (req, res) => {
+
+    res.render("forgot_password", {
+        title: "Forgot password"
+    })
+
 }

@@ -18,11 +18,13 @@
             <div class="form-group">
                 <label for="exampleInputPassword1">Password</label>
                 <input name="password" type="password" class="form-control" id="exampleInputPassword1">
+                <small style="color:darkgrey"><a href="http://localhost:<%= process.env.PORT %>/forgot_password">forgot
+                        password?</a>
             </div>
 
             <input type="hidden" id="captcha" name="captcha">
             <div class="margin"></div>
-            <a href="/signup">Create Account</a>
+            <a style="font-size: 1rem;" href="/signup">Create Account&#8594;</a>
             <button type="submit" class="submit btn btn-primary">Submit</button>
     </div>
 
