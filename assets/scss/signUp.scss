@@ -4,13 +4,13 @@ body{
     font-size: 14px;  
   }
   
-  .home_page{
+  .sign_up{
       border:1px solid grey;
       border-radius: 5px;
     background-color: white;
-    min-width:400px;
+    min-width:600px;
     // min-height: 500px;
-    padding: 40px 40px 36px;
+    padding: 36px 40px 36px;
     // display: flex;
     // justify-content: center;
     // align-items: center;
@@ -33,4 +33,11 @@ body{
       translate: 0 -50%;
       position: absolute;
       right:3rem;
+  }
+  
+  .name{
+      display:flex;
+      flex-direction: row;
+    //   max-width:300px;
+      justify-content: space-between;
   }
