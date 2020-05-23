@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 <link rel="stylesheet" href="/css/signUp.css">
-
+<script src="https://www.google.com/recaptcha/api.js?render=6LfxyvMUAAAAAL-cFL72FJSTdp5RLUeWqIF6l-Ow"></script>
 <div class="sign_up">
     <div class="heading">
         <h1>Sign Up</h1>
@@ -40,6 +40,7 @@
             </div>
 
         </div>
+        <input type="hidden" id="captcha" name="captcha">
         <div style="margin-top: 2rem;">
             <a href="/" style="margin-right:4rem ">Sign in instead</a>
             <button type="submit" class="btn btn-primary">Submit</button>
@@ -47,7 +48,18 @@
 
     </form>
 </div>
+<script>
 
+    grecaptcha.ready(function () {
+
+        grecaptcha.execute('6LfxyvMUAAAAAL-cFL72FJSTdp5RLUeWqIF6l-Ow', {
+            action: "/"
+        }).then(function (token) {
+
+            document.getElementById("captcha").value = token;
+        });
+    });
+</script>
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
     integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
     crossorigin="anonymous"></script>

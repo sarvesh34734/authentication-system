@@ -41,7 +41,7 @@ verifyCaptcha = function (req, res, next) {
 
 
 router.get("/", homeController.home);
-router.post("/create-user", homeController.createUser);
+router.post("/create-user", recaptcha.middleware.verify = verifyCaptcha, homeController.createUser);
 
 router.get("/signup", homeController.signUp);
 // router.get("/signin", homeController.signin);
