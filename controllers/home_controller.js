@@ -18,6 +18,8 @@ module.exports.createUser = async function (req, res, next) {
     try {
 
         const username = await User.findOne({ $or: [{ username: req.body.username }, { email: req.body.email }] });
+
+        // if user already exists
         if (username) {
             console.log("Username/Email already exists");
             req.flash("error", "Username/Email already exists");
@@ -36,9 +38,18 @@ module.exports.createUser = async function (req, res, next) {
                     return res.redirect("/signup");
                 }
             }
+            console.log(req.body);
             const user = await User.create(req.body);
+            // // {
+            //     firstname: req.body.firstname,
+            //     lastname: req.body.lastname,
+            //     username: req.body.username,
+            //     email: req.body.email,
+            //     password: req.body.password,
+            //     isAuthenticated: false,
+            // }
 
-            res.redirect("/");
+            return res.redirect("/");
         }
 
     } catch{
