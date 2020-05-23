@@ -7,6 +7,8 @@ const Recaptcha = require("express-recaptcha").RecaptchaV3;
 const recaptcha = new Recaptcha(process.env.CAPTCHA_KEY, process.env.CAPTCHA_SECRET);
 
 
+router.use("/accountVerification", require("./verification"));
+
 
 // middleware to verify recaptcha
 verifyCaptcha = function (req, res, next) {

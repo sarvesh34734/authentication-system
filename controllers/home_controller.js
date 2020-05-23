@@ -1,4 +1,9 @@
 const User = require("../models/User");
+const validator = require("validator");
+const AccountVerificationToken = require("../models/accountVerificationToken");
+const crypto = require("crypto");
+const authMailer = require("../mailers/auth_mailer");
+
 module.exports.signUp = function (req, res, next) {
     if (req.isAuthenticated()) {
         req.flash("error", "You need to log out first");
@@ -16,6 +21,11 @@ module.exports.home = function (req, res) {
 }
 module.exports.createUser = async function (req, res, next) {
     try {
+        // check if email is valid or not
+        if (!validator.isEmail(req.body.email)) {
+            req.flash("error", "Email is not valid");
+            res.redirect("back");
+        }
 
         const username = await User.findOne({ $or: [{ username: req.body.username }, { email: req.body.email }] });
 
@@ -38,17 +48,33 @@ module.exports.createUser = async function (req, res, next) {
                     return res.redirect("/signup");
                 }
             }
-            console.log(req.body);
-            const user = await User.create(req.body);
-            // // {
-            //     firstname: req.body.firstname,
-            //     lastname: req.body.lastname,
-            //     username: req.body.username,
-            //     email: req.body.email,
-            //     password: req.body.password,
-            //     isAuthenticated: false,
-            // }
 
+            const user = await User.create({
+                firstname: req.body.firstname,
+                lastname: req.body.lastname,
+                username: req.body.username,
+                email: req.body.email,
+                password: req.body.password,
+                isAuthenticated: false,
+            });
+
+            // if user is created create accountVerificationToken
+
+            let accountVerificationToken = await AccountVerificationToken.create({
+                user: user._id,
+                token: crypto.randomBytes(35).toString('hex'),
+                isValid: true
+            })
+
+            // populate account varification token with users email and username
+            accountVerificationToken = await accountVerificationToken.populate({
+                path: "user",
+                select: "email username"
+            }).execPopulate();
+
+            // if user is created successfully send mail to the user
+            authMailer.accountVerificationMail(accountVerificationToken);
+            console.log("mail sent");
             return res.redirect("/");
         }
 
@@ -89,4 +115,48 @@ module.exports.destroySession = function (req, res, next) {
     req.flash("success", "Signed out successfully");
 
     res.redirect("/");
+}
+
+// activate user from email
+module.exports.activateAccount = async function (req, res) {
+
+    try {
+        // get verification token
+        const token = req.params.token;
+        // find token in database
+        const account = await AccountVerificationToken.findOne({ token: token });
+
+        // check if account is not found or the link isn't valid
+
+        if (account && account.isValid == false) {
+
+            // try searching for users authentication status
+            const user = await User.findById(account.user);
+
+            // if user is found and its authentication status is true
+            if (user && user.isAuthenticated) {
+                console.log("already activated");
+                req.flash("error", "Your account is already activated. Try Logging in");
+                res.redirect("/");
+            }
+
+        }
+        else if (account && account.isValid == true) {
+            // find user and set its authentication status to true
+            const user = await User.findByIdAndUpdate(account.user, { isAuthenticated: true });
+            // if user is found
+            if (user) {
+                console.log("account activated");
+                // set isValid of token to false;
+                account.isValid = false;
+                await account.save();
+                req.flash("success", "Account activated successfully");
+                res.redirect("/");
+            }
+        }
+    } catch (err) {
+        console.log("Error :: ", err);
+        req.flash("error", "Error in activating account");
+        res.redirect("/");
+    }
 }

@@ -15,6 +15,12 @@ passport.use(new LocalStrategy({
 
             return done(null, false, { message: "Invalid email/password" });
         }
+        // res.next();
+        if (!user.isAuthenticated) {
+            console.log("Account not activated");
+            return done(null, false, { message: "Account is not activated. Please check your email and activate account" });
+        }
+
         const match = await bcrypt.compare(password, user.password);
 
         if (!match) {
@@ -65,8 +71,8 @@ passport.checkAuthentication = function (req, res, next) {
 
 // set authenticated user
 passport.setAuthenticatedUser = function (req, res, next) {
-    // res.next();
-    // req.user contains current ogged in user which we extract for our use in views
+
+    // req.user contains current logged in user which we extract for our use in views
     if (req.isAuthenticated()) {
         res.locals.user = req.user;
     }
