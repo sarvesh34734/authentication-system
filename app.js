@@ -13,10 +13,10 @@ const expressLayouts = require('express-ejs-layouts');
 const sassMiddleware = require('node-sass-middleware');
 const flash = require("connect-flash");
 const customMware = require("./config/middleware");
-const nocache = require("nocache");
+// const nocache = require("nocache");
 
 // use nocache
-app.use(nocache());
+// app.use(nocache());
 
 
 

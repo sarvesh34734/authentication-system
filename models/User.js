@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
-
+var ValidationError = mongoose.Error.ValidationError;
+var ValidatorError = mongoose.Error.ValidatorError;
 const userSchema = new mongoose.Schema({
     firstname: {
         type: String,
@@ -19,7 +20,7 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        validate: validator.isEmail,
+        validate: [validator.isEmail, "Enter a valid email"],
         unique: true
     },
     password: {
@@ -29,6 +30,7 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.pre("save", async function (next) {
+
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
     // next();

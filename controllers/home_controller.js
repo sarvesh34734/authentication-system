@@ -37,7 +37,7 @@ module.exports.createUser = async function (req, res, next) {
                 }
             }
             const user = await User.create(req.body);
-
+            console.log(req.body);
             res.redirect("/");
         }
 
