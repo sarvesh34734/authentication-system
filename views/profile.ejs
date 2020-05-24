@@ -6,13 +6,20 @@
     <% if(locals.user){ %>
     <h1 style="font-size: 3rem;">Welcome <%=user.firstname %> <%= user.lastname %></h1>
     <br>
-    <form action="/signout" method="GET">
-        <button type="submit" class="btn btn-primary">Sign Out</button>
-    </form>
-    <form action="/reset_request" method="POST">
-        <input type="hidden" name="email" value="<%= user.email %>">
-        <button type="submit" class="btn btn-primary">Reset Password</button>
-    </form>
+    <div class="buttons">
+
+        <form action="/signout" method="GET">
+            <button type="submit" class="btn-1 btn btn-primary">Sign Out</button>
+        </form>
+        <form action="/reset_request" method="POST">
+            <input type="hidden" name="email" value="<%= user.email %>">
+            <button type="submit" class="btn btn-primary">Reset Password</button>
+        </form>
+
+
+
+    </div>
+
     <% } %>
 
 </div>

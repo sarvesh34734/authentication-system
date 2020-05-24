@@ -4,3 +4,11 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%); }
+
+.buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: left; }
+
+.btn-1 {
+  margin-right: 2rem; }
