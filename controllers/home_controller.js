@@ -7,6 +7,7 @@ const authEmailWorker = require("../workers/activation_email_worker");
 const queue = require("../config/kue");
 const ResetPasswordToken = require("../models/resetPasswordToken");
 const resetEmailWorker = require("../workers/reset_password_worker");
+const bcrypt = require("bcrypt");
 
 module.exports.signUp = function (req, res, next) {
     if (req.isAuthenticated()) {
@@ -189,6 +190,14 @@ module.exports.resetRequest = async function (req, res) {
 
     try {
         const user = await User.findOne({ email: req.body.email });
+
+        // if request is authenticated then logout first
+        if (req.isAuthenticated()) {
+            req.flash("success", "Check for reset password link on mail");
+            req.logout();
+            res.redirect("/");
+        }
+
         // if no user is found
         if (!user) {
             console.log("No user found");
@@ -245,8 +254,8 @@ module.exports.resetRequest = async function (req, res) {
 
 }
 
-// update the password
-module.exports.updatePassword = async function (req, res) {
+// redirect to reset form if token is correct
+module.exports.resetRedirect = async function (req, res) {
     try {
         // if token matches in the database
         const token = await ResetPasswordToken.findOne({ token: req.params.token });
@@ -255,24 +264,22 @@ module.exports.updatePassword = async function (req, res) {
         if (!token) {
             console.log("Token not found");
 
-            return res.render("forgot_password", {
-                title: "Forgot password",
-                info: "token expired"
-            });
+            return res.render("invalid_url", {
+                title: "Error"
+            })
         }
         else {
             // if token is found but is invalid
             if (!token.isValid) {
                 console.log("token already used");
 
-                return res.render("forgot_password", {
-                    title: "Forgot password",
-                    info: "Already used"
-                });
+                return res.render("invalid_url", {
+                    title: "Error"
+                })
             } else {
                 //set isValid to false
-                token.isValid = false;
-                await token.save();
+                // token.isValid = false;
+                // await token.save();
 
                 // if token is found and isValid
                 console.log("authorized");
@@ -291,3 +298,59 @@ module.exports.updatePassword = async function (req, res) {
         res.redirect("back");
     }
 }
+
+// update the password
+module.exports.updatePassword = async (req, res) => {
+
+    try {
+        //if password and confirm_password do not match
+        if (req.body.password != req.body.confirm_password) {
+            req.flash("error", "passwords don't match");
+            return res.redirect("back");
+        }
+
+        // check for token and find user
+        const token = await ResetPasswordToken.findOne({ token: req.body.resetPasswordToken }).populate({
+            path: "user",
+            select: "email username password"
+        })
+
+        // if there is no token
+        if (!token) {
+            console.log("invalid token");
+            req.flash("error", "Server error");
+            return res.redirect("/forgot_password");
+        }
+
+        // if token is already used
+        if (!token.isValid) {
+            console.log("token already used");
+            req.flash("error", "URL already used. Try generating another one");
+            return res.redirect("/forgot_password");
+        }
+
+        // now we have a valid token
+        // check if the password match with the previous password
+        const match = await bcrypt.compare(req.body.password, token.user.password);
+
+        // if password matches
+        if (match) {
+            req.flash("error", "Password cannot be same as old password");
+            return res.redirect("back");
+        }
+
+        // now finally we can update password
+        token.user.password = req.body.password;
+        await token.user.save();
+        token.isValid = false;
+        await token.save();
+        req.flash("success", "password updated successfully. You can now try logging in");
+        res.redirect("/");
+    } catch (err) {
+        console.log("Error updating password :: ", err);
+        req.flash("error", "Error updating password");
+        res.redirect("/forgot_password");
+    }
+
+}
+

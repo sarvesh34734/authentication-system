@@ -9,6 +9,10 @@
     <form action="/signout" method="GET">
         <button type="submit" class="btn btn-primary">Sign Out</button>
     </form>
+    <form action="/reset_request" method="POST">
+        <input type="hidden" name="email" value="<%= user.email %>">
+        <button type="submit" class="btn btn-primary">Reset Password</button>
+    </form>
     <% } %>
 
 </div>

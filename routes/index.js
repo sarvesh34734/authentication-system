@@ -9,7 +9,7 @@ const recaptcha = new Recaptcha(process.env.CAPTCHA_KEY, process.env.CAPTCHA_SEC
 
 router.use("/accountVerification", require("./verification"));
 router.get("/forgot_password", homeController.forgotPassword);
-router.get("/reset_password/:token", homeController.updatePassword);
+router.get("/reset_password/:token", homeController.resetRedirect);
 router.post("/reset_request", homeController.resetRequest);
 
 // middleware to verify recaptcha
@@ -46,7 +46,7 @@ verifyCaptcha = function (req, res, next) {
 
 router.get("/", homeController.home);
 router.post("/create-user", recaptcha.middleware.verify = verifyCaptcha, homeController.createUser);
-
+router.post("/reset_password", homeController.updatePassword);
 router.get("/signup", homeController.signUp);
 // router.get("/signin", homeController.signin);
 // pass passport middleware to authenticate
