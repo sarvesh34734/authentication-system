@@ -194,8 +194,8 @@ module.exports.resetRequest = async function (req, res) {
         // if request is authenticated then logout first
         if (req.isAuthenticated()) {
             req.flash("success", "Check for reset password link on mail");
-            req.logout();
-            res.redirect("/");
+            await req.logout();
+           
         }
 
         // if no user is found
