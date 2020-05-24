@@ -14,7 +14,7 @@ module.exports.signUp = function (req, res, next) {
         req.flash("error", "You need to log out first");
         return res.redirect("/profile");
     }
-    res.render("sign-up", { title: "Sign Up" });
+    return res.render("sign-up", { title: "Sign Up" });
 
 }
 module.exports.home = function (req, res) {
@@ -22,14 +22,14 @@ module.exports.home = function (req, res) {
         req.flash("error", "You need to log out first");
         return res.redirect("/profile");
     }
-    res.render("home", { title: "home" })
+    return res.render("home", { title: "home" })
 }
 module.exports.createUser = async function (req, res, next) {
     try {
         // check if email is valid or not
         if (!validator.isEmail(req.body.email)) {
             req.flash("error", "Email is not valid");
-            res.redirect("back");
+            return res.redirect("back");
         }
 
         const username = await User.findOne({ $or: [{ username: req.body.username }, { email: req.body.email }] });
@@ -38,12 +38,12 @@ module.exports.createUser = async function (req, res, next) {
         if (username) {
             console.log("Username/Email already exists");
             req.flash("error", "Username/Email already exists");
-            res.redirect("back");
+            return res.redirect("back");
         } else {
             if (req.body.password != req.body.confirm_password) {
                 console.log("Password don't match");
                 req.flash("error", "Password don't match");
-                res.redirect("back");
+                return res.redirect("back");
             }
             // check for null or empty values
             for (let key in req.body) {
@@ -95,7 +95,7 @@ module.exports.createUser = async function (req, res, next) {
     } catch{
         (err) => {
             console.log(err);
-            res.redirect("back");
+            return res.redirect("back");
         }
     }
 }
@@ -119,7 +119,7 @@ module.exports.createSession = function (req, res) {
 
 //profile
 module.exports.profile = function (req, res, next) {
-    res.render("profile", { title: "Profile" })
+    return res.render("profile", { title: "Profile" })
 }
 
 // desroy session
@@ -128,7 +128,7 @@ module.exports.destroySession = function (req, res, next) {
     req.logout();
     req.flash("success", "Signed out successfully");
 
-    res.redirect("/");
+    return res.redirect("/");
 }
 
 // activate user from email
@@ -165,13 +165,13 @@ module.exports.activateAccount = async function (req, res) {
                 account.isValid = false;
                 await account.save();
                 req.flash("success", "Account activated successfully");
-                res.redirect("/");
+                return res.redirect("/");
             }
         }
     } catch (err) {
         console.log("Error :: ", err);
         req.flash("error", "Error in activating account");
-        res.redirect("/");
+        return res.redirect("/");
     }
 }
 
@@ -179,7 +179,7 @@ module.exports.activateAccount = async function (req, res) {
 // forgot password page render
 module.exports.forgotPassword = (req, res) => {
 
-    res.render("forgot_password", {
+    return res.render("forgot_password", {
         title: "Forgot password"
     })
 
@@ -202,7 +202,7 @@ module.exports.resetRequest = async function (req, res) {
         if (!user) {
             console.log("No user found");
             req.flash("error", "no user found");
-            res.redirect("back");
+            return res.redirect("back");
         }
         else {
 
@@ -247,7 +247,7 @@ module.exports.resetRequest = async function (req, res) {
     catch (err) {
         console.log("error :: ", err);
         req.flash("Error");
-        res.redirect("back");
+        return res.redirect("back");
     }
 
 
@@ -295,7 +295,7 @@ module.exports.resetRedirect = async function (req, res) {
     } catch (err) {
         console.log("Error in updating password :: ", err);
         req.flash("error", "Error in updating password");
-        res.redirect("back");
+        return res.redirect("back");
     }
 }
 
@@ -345,11 +345,11 @@ module.exports.updatePassword = async (req, res) => {
         token.isValid = false;
         await token.save();
         req.flash("success", "password updated successfully. You can now try logging in");
-        res.redirect("/");
+        return res.redirect("/");
     } catch (err) {
         console.log("Error updating password :: ", err);
         req.flash("error", "Error updating password");
-        res.redirect("/forgot_password");
+        return res.redirect("/forgot_password");
     }
 
 }
