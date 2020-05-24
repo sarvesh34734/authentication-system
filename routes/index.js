@@ -8,7 +8,9 @@ const recaptcha = new Recaptcha(process.env.CAPTCHA_KEY, process.env.CAPTCHA_SEC
 
 
 router.use("/accountVerification", require("./verification"));
-router.get("/forgot_password", homeController.forgotPassword)
+router.get("/forgot_password", homeController.forgotPassword);
+router.get("/reset_password/:token", homeController.updatePassword);
+router.post("/reset_request", homeController.resetRequest);
 
 // middleware to verify recaptcha
 verifyCaptcha = function (req, res, next) {

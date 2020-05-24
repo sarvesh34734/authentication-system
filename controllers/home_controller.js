@@ -5,6 +5,8 @@ const crypto = require("crypto");
 const authMailer = require("../mailers/auth_mailer");
 const authEmailWorker = require("../workers/activation_email_worker");
 const queue = require("../config/kue");
+const ResetPasswordToken = require("../models/resetPasswordToken");
+const resetEmailWorker = require("../workers/reset_password_worker");
 
 module.exports.signUp = function (req, res, next) {
     if (req.isAuthenticated()) {
@@ -180,4 +182,112 @@ module.exports.forgotPassword = (req, res) => {
         title: "Forgot password"
     })
 
+}
+
+// handle reset request
+module.exports.resetRequest = async function (req, res) {
+
+    try {
+        const user = await User.findOne({ email: req.body.email });
+        // if no user is found
+        if (!user) {
+            console.log("No user found");
+            req.flash("error", "no user found");
+            res.redirect("back");
+        }
+        else {
+
+            // check if token already exists
+            const token = await ResetPasswordToken.findOne({ user: user._id });
+
+            if (token && token.isValid) {
+                console.log("token exists");
+                req.flash("error", "Previous verification link has not expired. Please check your mailbox");
+                return res.redirect("back");
+            }
+
+            // user found create a reset password token
+            let resetPasswordToken = await ResetPasswordToken.create({
+                user: user._id,
+                token: crypto.randomBytes(35).toString('hex'),
+                isValid: true
+            })
+            // populate reset password token with users email and username
+            resetPasswordToken = await resetPasswordToken.populate({
+                path: "user",
+                select: "email username"
+            }).execPopulate();
+
+
+            //send mail
+            let job = queue.create("resetEmail", resetPasswordToken).save(function (err) {
+
+                if (err) {
+                    console.log("Error in creating the queue");
+                    return;
+                }
+
+                console.log("Job created", job.id);
+            })
+            console.log("mail sent successfully");
+            req.flash("success", "mail sent successfully. Link is valid for 15 minutes");
+            return res.redirect("back");
+
+        }
+    }
+    catch (err) {
+        console.log("error :: ", err);
+        req.flash("Error");
+        res.redirect("back");
+    }
+
+
+
+}
+
+// update the password
+module.exports.updatePassword = async function (req, res) {
+    try {
+        // if token matches in the database
+        const token = await ResetPasswordToken.findOne({ token: req.params.token });
+        console.log(token);
+        // if token is not found
+        if (!token) {
+            console.log("Token not found");
+
+            return res.render("forgot_password", {
+                title: "Forgot password",
+                info: "token expired"
+            });
+        }
+        else {
+            // if token is found but is invalid
+            if (!token.isValid) {
+                console.log("token already used");
+
+                return res.render("forgot_password", {
+                    title: "Forgot password",
+                    info: "Already used"
+                });
+            } else {
+                //set isValid to false
+                token.isValid = false;
+                await token.save();
+
+                // if token is found and isValid
+                console.log("authorized");
+
+                return res.render("reset_password", {
+                    title: "Reset password",
+                    resetPasswordToken: token
+                });
+            }
+        }
+
+
+    } catch (err) {
+        console.log("Error in updating password :: ", err);
+        req.flash("error", "Error in updating password");
+        res.redirect("back");
+    }
 }
